@@ -3,6 +3,7 @@ from flask.logging import create_logger
 import tasks
 import os
 import sys
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Initialize Flask app
 app = Flask(__name__,
@@ -10,11 +11,12 @@ app = Flask(__name__,
            static_url_path='/static',
            template_folder='templates')
 
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+
 # Configure logging
 logger = create_logger(app)
 
 # Remove duplicate debug settings
-app.config['DEBUG'] = True
 
 # --- Homepage ---
 @app.route("/", methods=['GET'])
@@ -94,3 +96,13 @@ def before_request():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
+
+@app.errorhandler(404)
+def not_found_error(error):
+    logger.error(f"Page not found: {request.url}")
+    return jsonify({"error": "Not found"}), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    logger.error(f"Server Error: {error}")
+    return jsonify({"error": "Internal server error"}), 500
