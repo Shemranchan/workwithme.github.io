@@ -1,8 +1,13 @@
 from flask import Flask, render_template, jsonify, request, redirect, url_for
 from flask.logging import create_logger
-import tasks
 import os
 import sys
+
+# Ensure project root (parent of `api/`) is on sys.path so imports like `tasks` work
+# when running `api/index.py` directly or when the working directory is `api/`.
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+import tasks
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Initialize Flask app
