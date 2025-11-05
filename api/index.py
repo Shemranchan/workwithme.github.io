@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request, redirect, url_for
+from flask import Flask, render_template, jsonify, request, redirect, url_for, send_from_directory
 from flask.logging import create_logger
 import os
 import sys
@@ -22,6 +22,30 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # Configure logging
 logger = create_logger(app)
+
+# --- Serve static files explicitly (needed for Vercel) ---
+@app.route('/static/<path:filename>')
+def static_files(filename):
+    try:
+        return send_from_directory(app.static_folder, filename)
+    except Exception as e:
+        logger.error(f"Error serving static file {filename}: {str(e)}")
+        return jsonify({"error": "File not found"}), 404
+
+# --- Favicon handler ---
+@app.route('/favicon.ico')
+def favicon():
+    try:
+        # Try to serve favicon if it exists, otherwise return 204 (No Content)
+        favicon_path = os.path.join(app.static_folder, 'favicon.ico')
+        if os.path.exists(favicon_path):
+            return send_from_directory(app.static_folder, 'favicon.ico')
+        else:
+            # Return 204 No Content to avoid 404 errors
+            return '', 204
+    except Exception as e:
+        logger.error(f"Error serving favicon: {str(e)}")
+        return '', 204
 
 # --- Homepage ---
 @app.route("/", methods=['GET'])
