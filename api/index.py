@@ -5,16 +5,18 @@ import sys
 
 # Ensure project root (parent of `api/`) is on sys.path so imports like `tasks` work
 # when running `api/index.py` directly or when the working directory is `api/`.
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, root)
 
 import tasks
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-# Initialize Flask app
+# Initialize Flask app with absolute static/template paths so the app works
+# reliably whether run locally or as a Vercel serverless function.
 app = Flask(__name__,
-           static_folder='../static',  # Updated path
+           static_folder=os.path.join(root, 'static'),
            static_url_path='/static',
-           template_folder='../templates')  # Updated path
+           template_folder=os.path.join(root, 'templates'))
 
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
