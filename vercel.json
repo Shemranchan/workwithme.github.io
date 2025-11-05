@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "connect.py",
+      "src": "api/index.py",
       "use": "@vercel/python"
     }
   ],
@@ -13,7 +13,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "connect.py"
+      "dest": "api/index.py"
     }
   ],
   "env": {
